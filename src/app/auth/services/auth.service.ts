@@ -2,7 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
 import { environment } from 'src/environments/environments';
-import { CheckTokenResponse, LogoutResponse, User } from '../interfaces';
+import { CheckTokenResponse, Register, User } from '../interfaces';
 import { AuthStatus } from '../interfaces/auth-status.enum';
 import { LoginResponse } from '../interfaces/login-response.interface';
 
@@ -36,6 +36,16 @@ export class AuthService {
     return true;
   }
 
+  register(registerData: Register): Observable<boolean> {
+    const url = `${this.baseUrl}/auth/register`;
+
+    return this.http.post<LoginResponse>(url, registerData)
+      .pipe(
+        map(({ user, token }) => this.setAuthentication(user, token)),
+        catchError(err => throwError(() => err.error.message))
+      );
+  }
+
   login(email: string, password: string): Observable<boolean>{
     const url = `${this.baseUrl}/auth/login`;
     const body = {email, password};
@@ -46,8 +56,6 @@ export class AuthService {
         map(({user, token}) => this.setAuthentication(user, token)),
         catchError(err => throwError(() => err.error.message))
       )
-
-
   }
 
   checkAuthStatus(): Observable<boolean>{
